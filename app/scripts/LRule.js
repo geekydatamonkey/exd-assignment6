@@ -21,8 +21,9 @@ export default class LRule {
 
   getOutput(char) {
     if (! this.matches(char)) {
-      throw `The rule "${this.input} -> ${this.output}" ` +
-            `cannot be applied to character "${char}"`;
+      let message = `The rule '${this.input} -> ${this.output}' ` +
+            `cannot be applied to character '${char}'`;
+      throw new Error(message);
     }
     return this.output;
   }

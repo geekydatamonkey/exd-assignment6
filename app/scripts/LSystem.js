@@ -68,20 +68,22 @@ export default class LSystem {
   /**
   * applies the rules the current generation
   */
-  generate() {
-    let currentChars = this.current.split('');
-    let next = [];
+  generate(iterations = 1) {
+    for(let i = 0; i < iterations; i++ ) {
+      let currentChars = this.current.split('');
+      let next = [];
 
-    // Step through current, applying lSystem rules
-    currentChars.forEach((char) =>{
-      next.push(this._getOutputForChar(char));
-    });
+      // Step through current, applying lSystem rules
+      currentChars.forEach((char) =>{
+        next.push(this._getOutputForChar(char));
+      });
 
-    // join next array and replace current
-    this.current = next.join(''); 
+      // join next array and replace current
+      this.current = next.join(''); 
 
-    // we're now on the next generation
-    this.generation += 1;
+      // we're now on the next generation
+      this.generation += 1;
+    }
   }
 
   /**
@@ -92,11 +94,13 @@ export default class LSystem {
   * @return {String}
   */
   _getOutputForChar(char) {
-    this.rules.forEach((rule) => {
+    let len = this.rules.length;
+    for (let i=0; i < len; i++) {
+      let rule = this.rules[i];
       if (rule.matches(char)) {
         return rule.getOutput(char);
       }
-    });
+    }
   }
 
 }
