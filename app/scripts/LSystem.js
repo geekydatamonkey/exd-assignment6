@@ -58,6 +58,10 @@ export default class LSystem {
     return this.current;
   }
 
+  getSentence() {
+    return this.getCurrent();
+  }
+
   /**
   * getGeneration
   */
@@ -80,15 +84,20 @@ export default class LSystem {
 
       // join next array and replace current
       this.current = next.join(''); 
+      console.log(this.current);
 
       // we're now on the next generation
       this.generation += 1;
     }
   }
 
+  next(iterations) {
+    return this.generate(iterations);
+  }
+
   /**
-  * looks up the appropriate rule for char and then returns the output string
-  * for when char is applied to rules
+  * looks up the appropriate rule for char
+  * if no rule exists, return char
   *
   * @param {String} char
   * @return {String}
@@ -101,6 +110,7 @@ export default class LSystem {
         return rule.getOutput(char);
       }
     }
+    return char;
   }
 
 }

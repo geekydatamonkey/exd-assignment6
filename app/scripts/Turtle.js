@@ -24,17 +24,21 @@ export default class Turtle {
   constructor(config) {
     let defaults = {
       instructions: '',
-      length: 10,
+      length: 100,
       turnAngle: π/2,
       sketch: null,
-      color: [0]
+      color: [0],
+      strokeWeight: 3,
+      _instructionIndex: 0,
+      showHead: false,
     };
 
     config = _.assign({}, defaults, config);
 
-    _.each(config, (value, key) => {
-      this[key] = value;
+    Object.keys(config).forEach((key) => {
+      this[key] = config[key];
     });
+
   }
 
   /**
@@ -85,6 +89,7 @@ export default class Turtle {
       // draw line and move forward
       'F' : () => {
         s.stroke(this.color);
+        s.strokeWeight(this.strokeWeight);
         s.line(0, 0, this.length, 0);
         
         // put the turtle at the head of the line
@@ -104,7 +109,7 @@ export default class Turtle {
 
       // turn left
       '-': () => {
-        s.rotate(-this.turnAngle);
+        s.rotate(-1 * this.turnAngle);
       },
 
       // save current location
@@ -118,7 +123,39 @@ export default class Turtle {
       }
     };
 
+    if (! (actionKey in actions)) {
+      throw new Error(`'${actionKey}' is an invalid Turtle action`);
+    }
+
     return actions[actionKey];
+  }
+
+  // renderNextInstruction() {
+  //   if (!this.sketch) {
+  //     throw new Error('Cannot render. No sketch is set for this turtle.');
+  //   }
+
+  //   // make sure index is in bounds
+  //   if (this._instructionIndex >= this.instructions.length) {
+  //     this._instructionIndex = 0;
+  //   }
+
+  //   let currentChar = this.instructions.charAt(this._instructionIndex);
+  //   let actionFn = this._getAction(currentChar);
+  //   console.log(`instruction: ${currentChar}`, actionFn);
+  //   actionFn();
+
+  //   this._renderTurtle();
+
+  //   this._instructionIndex++;
+  // }
+
+  _renderTurtle() {
+    this.sketch.push();
+    this.sketch.noStroke();
+    this.sketch.fill('red');
+    this.sketch.triangle(0,0,-10, 5, -10, -5);
+    this.sketch.pop();
   }
 
   /**
@@ -130,9 +167,10 @@ export default class Turtle {
     }
 
     let lengthOfInstructions = this.instructions.length;
-
+    
+    this.sketch.push();
     for (let i = 0; i < lengthOfInstructions; i++) {
-      let currentChar = this.instructions.charAr(i);
+      let currentChar = this.instructions.charAt(i);
 
       // look up the action corresponding to this char
       let actionFn = this._getAction(currentChar);
@@ -140,6 +178,12 @@ export default class Turtle {
       // execute the action
       actionFn();
     }
+
+    if (this.showHead) {
+      this._renderTurtle();
+    }
+
+    this.sketch.pop();
 
   }
 

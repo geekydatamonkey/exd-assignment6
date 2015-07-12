@@ -17,6 +17,7 @@ import _ from 'lodash';
         'A': 'AB',
         'B': 'A'
       };
+
       lsys = new LSystem('A',rules);
     });
 
@@ -38,6 +39,19 @@ import _ from 'lodash';
       lsys.generate(4);
       expect(lsys.getCurrent()).to.equal(expected);
     });
+
+    it('if char doesnt match a rule, it should continue to next generation', () => {
+        lsys = new LSystem('A', {
+          'A' : 'ABC'
+        });
+        lsys.generate();
+        expect(lsys.getCurrent()).to.equal('ABC');
+        lsys.generate();
+        expect(lsys.getCurrent()).to.equal('ABCBC');
+        lsys.generate();
+        expect(lsys.getCurrent()).to.equal('ABCBCBC');
+    });
+
 
   });
 
