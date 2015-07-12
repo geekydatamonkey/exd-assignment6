@@ -12,19 +12,31 @@ const π = Math.PI;
 
 let config = {
   parent: '.canvas-wrapper',
+  rootX: 0.5,
+  rootY: 1,
   axiom: 'F',
   rules: {
     'F' : 'FF+[+F-F-F]-[-F+F+F]',
+    // 'F' : 'F+F-',
+    // '-' : '+G',
+    // 'G' : 'F--',
   },
   length: 200,
-  turnAngle: 25/180 * π,
+  turnAngle: 20/180 * π,
   scaleFactor: 0.5,
-
+  generations: 3,
+  breezeFactor: 0.01,
+  gustFactor: 1,
 };
 
 let $canvasWrapper = $(config.parent);
 let lsys;
 let turtle;
+let t = 0;
+let clickedTime = 0;
+let distMidToCorner;
+let clickedX = 100;
+let clickedY = 100;
 
 function sketch(s) {
 
@@ -34,6 +46,11 @@ function sketch(s) {
       $canvasWrapper.innerWidth(),
       $canvasWrapper.innerHeight()
     ).parent($canvasWrapper[0]);
+
+
+    let maxDx = s.width/2;
+    let maxDy = s.height/2;
+    distMidToCorner = Math.sqrt(maxDx * maxDx + maxDy + maxDy);
 
     // setup L-System
     lsys = new LSystem(config.axiom, config.rules);
@@ -45,31 +62,75 @@ function sketch(s) {
       sketch: s,
       instructions: lsys.getCurrent()
     });
-    s.noLoop();
+    s.translate(
+      config.rootX * s.width, 
+      config.rootY * s.height
+    );
+    s.rotate(-π/2);
+
+    //
+    lsys.generate(config.generations);
+    turtle.setInstructions(lsys.getCurrent());
+    let scale = Math.pow(config.scaleFactor, config.generations);
+    turtle.scaleLength(scale);
+
   };
 
   s.draw = function() {
-    s.translate(s.width/2, s.height);
-    s.rotate(-90);
+    s.background(255);
+    turtle.setTurnAngle(getAngle());
     turtle.render();
+    t += 1;
+    clickedTime += 1;
   };
 
-
   s.mousePressed = function() {
-    s.clear();
-    s.push();
-    lsys.generate();
-    let instructions = lsys.getCurrent();
-    console.log(`instructions: ${instructions}`);
-    turtle.setInstructions(instructions);
-    turtle.scaleLength(config.scaleFactor);
-    s.pop();
-    s.redraw();
+
+    clickedTime = 0;
+    clickedX = s.mouseX;
+    clickedY = s.mouseY;
   };
 
   s.windowResized = function() {
     s.resizeCanvas( $canvasWrapper.innerWidth(), $canvasWrapper.innerHeight() );
+    s.setup();
   };
+
+  function getAngle() {
+
+    let angle = config.turnAngle;
+    
+    // add a light breeze for some gentle movement
+    angle += config.breezeFactor * Math.sin(t/(8*2*π));
+
+    // if there was a click, bounce a bit
+    // this is based on the dampening wave
+    // equation
+    if (clickedTime > 0) {
+
+      let distanceFromMiddle = s.dist(
+        clickedX,
+        clickedY,
+        s.width/2,
+        s.height/2
+      );
+
+      let gust = config.gustFactor - s.map(
+        distanceFromMiddle,
+        0,
+        distMidToCorner,
+        0,
+        config.gustFactor
+      );
+
+      angle += gust * 
+      Math.exp(-(clickedTime/10)) *
+      Math.cos(π *clickedTime/10);
+    }
+
+
+    return angle;
+  }
 
 }
 
