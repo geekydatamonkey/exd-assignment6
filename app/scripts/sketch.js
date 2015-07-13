@@ -2,41 +2,25 @@
 
 'use strict';
 
-// const _ = require('lodash');
 import $ from 'jquery';
+//import _ from 'lodash';
 import p5 from 'p5';
-import LSystem from './LSystem';
-import Turtle from './Turtle';
+import Plant from './Plant';
+import getRandomInt from './getRandomInt';
 
-const π = Math.PI;
+//const π = Math.PI;
 
-let config = {
-  parent: '.canvas-wrapper',
-  rootX: 0.5,
-  rootY: 1,
-  axiom: 'F',
-  rules: {
-    'F' : 'FF+[+F-F-F]-[-F+F+F]',
-    // 'F' : 'F+F-',
-    // '-' : '+G',
-    // 'G' : 'F--',
-  },
-  length: 200,
-  turnAngle: 20/180 * π,
-  scaleFactor: 0.5,
-  generations: 3,
-  breezeFactor: 0.01,
-  gustFactor: 1,
-};
-
+let config = { parent: '.canvas-wrapper' };
 let $canvasWrapper = $(config.parent);
-let lsys;
-let turtle;
-let t = 0;
-let clickedTime = 0;
-let distMidToCorner;
-let clickedX = 100;
-let clickedY = 100;
+let plants = [];
+
+let startingRules = [
+  'FF+[++F-F-F]-[-F+F]',
+  'FF+[+F-F-F]-[-F+F+F]',
+  'FF-[+FF-FF]+[-FF+FF]',
+  'FF[-F][+F]'
+];
+
 
 function sketch(s) {
 
@@ -47,90 +31,41 @@ function sketch(s) {
       $canvasWrapper.innerHeight()
     ).parent($canvasWrapper[0]);
 
+    s.colorMode(s.HSB);
 
-    let maxDx = s.width/2;
-    let maxDy = s.height/2;
-    distMidToCorner = Math.sqrt(maxDx * maxDx + maxDy + maxDy);
+    for (let i = 0; i < 10; i++ ) {
 
-    // setup L-System
-    lsys = new LSystem(config.axiom, config.rules);
+      let randomRules = startingRules[getRandomInt(0,startingRules.length)];
 
-    // setup turtle
-    turtle = new Turtle({
-      length: config.length,
-      turnAngle: config.turnAngle,
-      sketch: s,
-      instructions: lsys.getCurrent()
-    });
-    s.translate(
-      config.rootX * s.width, 
-      config.rootY * s.height
-    );
-    s.rotate(-π/2);
+      let conf = {
+        rules: {
+          'F': randomRules
+        },
+        color: [getRandomInt(0,255),255,255,200],
+        length: getRandomInt(50, 200),
+        root: {
+          x: getRandomInt(-s.width/2, s.width/2),
+          y: getRandomInt(10, s.height/2)
+        },
+        sketch: s,
+      };
+      plants.push(new Plant(conf));
+    }
 
-    //
-    lsys.generate(config.generations);
-    turtle.setInstructions(lsys.getCurrent());
-    let scale = Math.pow(config.scaleFactor, config.generations);
-    turtle.scaleLength(scale);
-
+    s.frameRate(30);
   };
 
   s.draw = function() {
     s.background(255);
-    turtle.setTurnAngle(getAngle());
-    turtle.render();
-    t += 1;
-    clickedTime += 1;
-  };
-
-  s.mousePressed = function() {
-
-    clickedTime = 0;
-    clickedX = s.mouseX;
-    clickedY = s.mouseY;
+    plants.forEach((plant) => {
+      plant.update().render();
+    });
   };
 
   s.windowResized = function() {
     s.resizeCanvas( $canvasWrapper.innerWidth(), $canvasWrapper.innerHeight() );
     s.setup();
   };
-
-  function getAngle() {
-
-    let angle = config.turnAngle;
-    
-    // add a light breeze for some gentle movement
-    angle += config.breezeFactor * Math.sin(t/(8*2*π));
-
-    // if there was a click, bounce a bit
-    // this is based on the dampening wave
-    // equation
-    if (clickedTime > 0) {
-
-      let distanceFromMiddle = s.dist(
-        clickedX,
-        clickedY,
-        s.width/2,
-        s.height/2
-      );
-
-      let gust = config.gustFactor - s.map(
-        distanceFromMiddle,
-        0,
-        distMidToCorner,
-        0,
-        config.gustFactor
-      );
-
-      angle += gust * 
-      Math.exp(-(clickedTime/10)) *
-      Math.cos(π *clickedTime/10);
-    }
-
-
-    return angle;
-  }
 
 }
 

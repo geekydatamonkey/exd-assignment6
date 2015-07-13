@@ -84,7 +84,6 @@ export default class LSystem {
 
       // join next array and replace current
       this.current = next.join(''); 
-      console.log(this.current);
 
       // we're now on the next generation
       this.generation += 1;

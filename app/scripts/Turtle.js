@@ -27,10 +27,11 @@ export default class Turtle {
       length: 100,
       turnAngle: π/2,
       sketch: null,
-      color: [0],
+      color: [0,0,0],
+      rotateColor: true,
       strokeWeight: 3,
-      _instructionIndex: 0,
       showHead: false,
+      colorChangeRate: 0,
     };
 
     config = _.assign({}, defaults, config);
@@ -38,6 +39,8 @@ export default class Turtle {
     Object.keys(config).forEach((key) => {
       this[key] = config[key];
     });
+
+    this.defaultColor = this.color.slice(0);
 
   }
 
@@ -88,6 +91,9 @@ export default class Turtle {
 
       // draw line and move forward
       'F' : () => {
+        if (this.rotateColor) {
+          this.color[0] = (this.color[0] + this.colorChangeRate) % 255;
+        }
         s.stroke(this.color);
         s.strokeWeight(this.strokeWeight);
         s.line(0, 0, this.length, 0);
@@ -130,26 +136,6 @@ export default class Turtle {
     return actions[actionKey];
   }
 
-  // renderNextInstruction() {
-  //   if (!this.sketch) {
-  //     throw new Error('Cannot render. No sketch is set for this turtle.');
-  //   }
-
-  //   // make sure index is in bounds
-  //   if (this._instructionIndex >= this.instructions.length) {
-  //     this._instructionIndex = 0;
-  //   }
-
-  //   let currentChar = this.instructions.charAt(this._instructionIndex);
-  //   let actionFn = this._getAction(currentChar);
-  //   console.log(`instruction: ${currentChar}`, actionFn);
-  //   actionFn();
-
-  //   this._renderTurtle();
-
-  //   this._instructionIndex++;
-  // }
-
   _renderTurtle() {
     this.sketch.push();
     this.sketch.noStroke();
@@ -169,6 +155,8 @@ export default class Turtle {
     let lengthOfInstructions = this.instructions.length;
     
     this.sketch.push();
+
+    this.color = this.defaultColor.slice(0);
     for (let i = 0; i < lengthOfInstructions; i++) {
       let currentChar = this.instructions.charAt(i);
 
