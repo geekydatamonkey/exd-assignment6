@@ -20,7 +20,7 @@ export default class Plant {
       angle: 20/360 * 2 * π,
       axiom: 'F',
       breeze: true,
-      breezeFactor: 0.05,
+      breezeFactor: 0.08,
       clickHandler: null,
       color: [0,255,255,200],
       colorChangeRate: 1/20,
